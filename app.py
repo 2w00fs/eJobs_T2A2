@@ -18,14 +18,17 @@ from modules.sanitise import char_check, check_email, check_digits, check_abc123
 from settings import (
     client_id,
     client_secret,
-    SQLALCHEMY_DATABASE_URI,
+    db_name,
+    db_address,
+    db_user,
+    db_pass,
     secret_key
 )
 
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{db_user}:{db_pass}@{db_address}:5432/{db_name}'
 app.secret_key = secret_key
 
 # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = OAUTHLIB_INSECURE_TRANSPORT
@@ -86,7 +89,6 @@ def index():
     else:
         google_data = None
         user_info_endpoint = '/oauth2/v2/userinfo'
-        print(dir(google))
         if google.authorized:
             try:
                 google_data = google.get(user_info_endpoint).json()
@@ -94,7 +96,6 @@ def index():
                 google.refresh_token
             else:
                 google_data = google.get(user_info_endpoint).json()
-                print(google_data)
                 if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
                     new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
                                     profile_pic=google_data['picture'])
@@ -190,13 +191,13 @@ def cust_by_id(id):
     return char_check(id, customer.get_cust_by_id(id))
 
 
-@app.route('/customer/add_form/')
+@app.route('/customers/add_form/')
 @login_required
 def new_customer():
     return html_strings.cust_template()
 
 
-@app.route('/customer/new/', methods=['POST'])
+@app.route('/customers/new/', methods=['POST'])
 @login_required
 def customer_add():
     business_name = request.form['business_name']
@@ -293,6 +294,12 @@ def staff_all():
     return staff.all_staff()
 
 
+@app.route('/staff/all/test')
+# @login_required
+def test_staff_all():
+    return staff.all_staff_test()
+
+
 @app.route('/staff/id/<id>/')
 @login_required
 def staff_by_id(id):
@@ -319,5 +326,11 @@ def staff_new():
         return 'Illegal characters entered', 400
 
 
+@app.route('/query')
+def quer():
+    return customer.query1()
+
+
+
 if __name__ == "__main__":
-    app.run(port=8000, debug=True)
+    app.run(port="8111")

@@ -48,3 +48,8 @@ def delete_staff_by_id(id):
     cute(db.select(Staff).filter(Staff.staff_id == id)).delete()
     return f'<html style="background-color:black;color:white"><h1>Staff Member Deleted!</h1> \
            {index_list()} </html>'
+
+
+def all_staff_test():
+    s = Staff()
+    return s.my_method()

@@ -1,4 +1,4 @@
-from modules.shared import db, ma
+from modules.shared import db, ma, cute
 
 
 class Jobcard(db.Model):
@@ -66,6 +66,14 @@ class Staff(db.Model):
     phone_number = db.Column(db.String)
     email_address = db.Column(db.String)
     job_staff = db.relationship(Jobcard, backref='technician', lazy=True)
+
+    def my_method(self):
+        print(dir(self))
+        print(self.last_name)
+        init_session = db.session.object_session(self)
+        ret_all = init_session(db.select(self.staff_id))
+        clist = StaffSchema(many=True).dump(ret_all)
+        return clist
 
 
 class StaffSchema(ma.Schema):
