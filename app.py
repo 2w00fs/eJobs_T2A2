@@ -1,7 +1,7 @@
 from flask import Flask, request, redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
-
+from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
 from flask_login import (
     LoginManager,
     current_user,
@@ -70,24 +70,39 @@ app.register_blueprint(blueprint, url_prefix="/login")
 
 
 @app.route("/")
+def welcome():
+    if current_user.is_authenticated:
+        return f'<html><body style="text-align:center;margin-top:10vh;background-color:black;color:white;"> \
+        <h1>Welcome to eJobs!</h1>{html_strings.index_list()}</body></html>'
+    else:
+        return f'<html><body style="text-align:center;margin-top:30vh;background-color:black;color:white;"> \
+        <h1>Welcome to eJobs!</h1><a style="color:white; "href="/index/"><h1>Login</h1></a></body></html>'
+
+
+@app.route("/index/")
 def index():
     if current_user.is_authenticated:
-        return '<html style="background-color:black"><h1 style="color:white">Welcome to eJobs!</h1>' + html_strings.index_list() + '</html>'
-
+        return f'<html style="background-color:black;color:white">{html_strings.index_list()}</html>'
     else:
         google_data = None
         user_info_endpoint = '/oauth2/v2/userinfo'
+        print(dir(google))
         if google.authorized:
-            google_data = google.get(user_info_endpoint).json()
-            print(google_data)
-            if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
-                new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
-                                profile_pic=google_data['picture'])
-                db.session.add_all([new_user])
-                db.session.commit()
+            try:
+                google_data = google.get(user_info_endpoint).json()
+            except TokenExpiredError:
+                google.refresh_token
+            else:
+                google_data = google.get(user_info_endpoint).json()
+                print(google_data)
+                if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
+                    new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
+                                    profile_pic=google_data['picture'])
+                    db.session.add(new_user)
+                    db.session.commit()
 
-            user = db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar()
-            login_user(user)
+                user = db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar()
+                login_user(user)
 
         return redirect(url_for("login"))
 
@@ -101,8 +116,8 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return '<html><body style="text-align:center;margin-top:50vh;background-color:black;color:white;">' \
-           + '<h1>Until Next Time!</h1></body></html>'
+    return f'<html><body style="text-align:center;margin-top:50vh;background-color:black;color:white;"> \
+           <h1>Until Next Time!</h1></body></html>'
 
 
 @app.route('/create_all/')
@@ -125,7 +140,8 @@ def create_db_all():
     db.session.add_all(jb_seed)
     db.session.commit()
     print("All Done")
-    return '<html style="background-color:black"><h1 style="color:white">All Done!</h1>' + html_strings.index_list() + '</html>'
+    return f'<html style="background-color:black;color:white"><h1 style="color:white">All Done!</h1> \
+    {html_strings.index_list()}</html>'
 
 
 @app.route('/equipment/all/')

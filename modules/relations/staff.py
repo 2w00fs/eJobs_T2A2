@@ -1,9 +1,9 @@
 import secrets
 
 from tables.build_staff import default_staff as stff
-from shared import db, cute
-from schemas import Staff, StaffSchema
-import html_strings
+from modules.shared import db, cute
+from modules.schemas import Staff, StaffSchema
+from modules.html_strings import index_list
 
 
 def staff_seed():
@@ -24,8 +24,8 @@ def new_staff(first_name, last_name, role, phone_number, email_address):
     new = Staff(secrets.token_hex(5), first_name, last_name, role, phone_number, email_address)
     db.session.add(new)
     db.session.commit()
-    return f'<html style="background-color:black"><h1 style="color:white">New Staff Member Added!</h1>' \
-           + html_strings.index_list() + '</html>'
+    return f'<html style="background-color:black"><body style="color:white"><h1>New Staff Member Added!</h1> \
+            {index_list()} </body></html>'
 
 
 def all_staff():
@@ -46,5 +46,5 @@ def get_staff_by_id(id):
 def delete_staff_by_id(id):
     # deletes staff member using their id
     cute(db.select(Staff).filter(Staff.staff_id == id)).delete()
-    return f'<html style="background-color:black"><h1 style="color:white">Staff Member Deleted!</h1>' \
-           + html_strings.index_list() + '</html>'
+    return f'<html style="background-color:black;color:white"><h1>Staff Member Deleted!</h1> \
+           {index_list()} </html>'

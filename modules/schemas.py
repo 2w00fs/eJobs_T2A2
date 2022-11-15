@@ -1,4 +1,4 @@
-from shared import db, ma
+from modules.shared import db, ma
 
 
 class Jobcard(db.Model):
