@@ -22,7 +22,8 @@ from settings import (
     db_address,
     db_user,
     db_pass,
-    secret_key
+    secret_key,
+    PORT
 )
 
 
@@ -331,6 +332,5 @@ def quer():
     return customer.query1()
 
 
-
 if __name__ == "__main__":
-    app.run(port="8111")
+    app.run(port=PORT)

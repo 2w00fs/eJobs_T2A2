@@ -14,6 +14,7 @@ db_user = os.environ.get("DB_USER")
 db_pass = os.environ.get("DB_PASS")
 OAUTHLIB_INSECURE_TRANSPORT = os.environ.get("OAUTHLIB_INSECURE_TRANSPORT")
 OAUTHLIB_RELAX_TOKEN_SCOPE = os.environ.get("OAUTHLIB_RELAX_TOKEN_SCOPE")
+PORT = os.environ.get("PORT")
 
 secret_key = os.urandom(24)
 
@@ -36,5 +37,5 @@ db_user = input("DB USER: ")
 db_pass = input("DB PASS: ")
 OAUTHLIB_INSECURE_TRANSPORT = input("OAUTHLIB_INSECURE_TRANSPORT: ")
 OAUTHLIB_RELAX_TOKEN_SCOPE = input("OAUTHLIB_RELAX_TOKEN_SCOPE: ")
-
+PORT = input("Flask Server Port: ")
 """
