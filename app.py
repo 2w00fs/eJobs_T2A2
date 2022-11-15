@@ -23,7 +23,7 @@ from settings import (
     db_user,
     db_pass,
     secret_key,
-    PORT
+    SERVER_PORT
 )
 
 

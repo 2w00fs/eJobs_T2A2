@@ -14,9 +14,11 @@ db_user = os.environ.get("DB_USER")
 db_pass = os.environ.get("DB_PASS")
 OAUTHLIB_INSECURE_TRANSPORT = os.environ.get("OAUTHLIB_INSECURE_TRANSPORT")
 OAUTHLIB_RELAX_TOKEN_SCOPE = os.environ.get("OAUTHLIB_RELAX_TOKEN_SCOPE")
-PORT = os.environ.get("PORT")
+SERVER_PORT = os.environ.get("SERVER_PORT")
 
 secret_key = os.urandom(24)
+
+print(f'DB ADDRESS: {db_address}')
 
 """
 
