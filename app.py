@@ -22,8 +22,7 @@ from settings import (
     db_address,
     db_user,
     db_pass,
-    secret_key,
-    SERVER_PORT
+    secret_key
 )
 
 
@@ -34,6 +33,7 @@ app.secret_key = secret_key
 
 # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = OAUTHLIB_INSECURE_TRANSPORT
 # os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = OAUTHLIB_RELAX_TOKEN_SCOPE
+OAUTHLIB_RELAX_TOKEN_SCOPE = True
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -91,20 +91,15 @@ def index():
         google_data = None
         user_info_endpoint = '/oauth2/v2/userinfo'
         if google.authorized:
-            try:
-                google_data = google.get(user_info_endpoint).json()
-            except TokenExpiredError:
-                google.refresh_token
-            else:
-                google_data = google.get(user_info_endpoint).json()
-                if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
-                    new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
-                                    profile_pic=google_data['picture'])
-                    db.session.add(new_user)
-                    db.session.commit()
+            google_data = google.get(user_info_endpoint).json()
+            if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
+                new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
+                                profile_pic=google_data['picture'])
+                db.session.add(new_user)
+                db.session.commit()
 
-                user = db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar()
-                login_user(user)
+            user = db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar()
+            login_user(user)
 
         return redirect(url_for("login"))
 
@@ -333,4 +328,4 @@ def quer():
 
 
 if __name__ == "__main__":
-    app.run(port=PORT)
+    app.run(port="8000")

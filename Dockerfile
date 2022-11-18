@@ -15,9 +15,6 @@ ARG dbaddress
 ARG dbname
 ARG dbuser
 ARG dbpass
-ARG insec
-ARG relax
-ARG serverport
 
 ENV CLIENT_ID $cid
 ENV CLIENT_SECRET $csecret
@@ -25,8 +22,6 @@ ENV DB_ADDRESS $dbaddress
 ENV DB_NAME $dbname
 ENV DB_USER $dbuser
 ENV DB_PASS $dbpass
-ENV OAUTHLIB_INSECURE_TRANSPORT $insec
-ENV OAUTHLIB_RELAX_TOKEN_SCOPE $relax
-ENV SERVER_PORT $server_port
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=8000" ]
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=$PORT", "--cert=adhoc"]
+
