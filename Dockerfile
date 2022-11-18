@@ -23,5 +23,5 @@ ENV DB_NAME $dbname
 ENV DB_USER $dbuser
 ENV DB_PASS $dbpass
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=8000", "--cert=adhoc"]
+# CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=8000", "--cert=adhoc"]
 
