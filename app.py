@@ -2,6 +2,7 @@ from flask import Flask, request, redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
+import os
 from flask_login import (
     LoginManager,
     current_user,
@@ -328,4 +329,4 @@ def quer():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(ssl_context='adhoc', debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))
