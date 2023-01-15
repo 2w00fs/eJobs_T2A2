@@ -48,3 +48,10 @@ def add_customer(business_name, branch_name, contact_name, phone_number, email_a
     db.session.commit()
     return f'<html style="background-color:black"><h1 style="color:white">Customer Created!</h1> \
     {index_list()}</html>'
+
+
+def query1():
+    r1 = Customer()
+    r = r1.job_customer
+    print(r)
+    return f'<html style="background-color:black"><h1 style="color:white">Ok</h1>'

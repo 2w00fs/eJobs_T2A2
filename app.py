@@ -1,7 +1,8 @@
 from flask import Flask, request, redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
-
+from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
+import os
 from flask_login import (
     LoginManager,
     current_user,
@@ -18,18 +19,22 @@ from modules.sanitise import char_check, check_email, check_digits, check_abc123
 from settings import (
     client_id,
     client_secret,
-    SQLALCHEMY_DATABASE_URI,
+    db_name,
+    db_address,
+    db_user,
+    db_pass,
     secret_key
 )
 
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql+psycopg2://{db_user}:{db_pass}@{db_address}:5432/{db_name}'
 app.secret_key = secret_key
 
 # os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = OAUTHLIB_INSECURE_TRANSPORT
 # os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = OAUTHLIB_RELAX_TOKEN_SCOPE
+OAUTHLIB_RELAX_TOKEN_SCOPE = True
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -70,20 +75,28 @@ app.register_blueprint(blueprint, url_prefix="/login")
 
 
 @app.route("/")
+def welcome():
+    if current_user.is_authenticated:
+        return f'<html><body style="text-align:center;margin-top:10vh;background-color:black;color:white;"> \
+        <h1>Welcome to eJobs!</h1>{html_strings.index_list()}</body></html>'
+    else:
+        return f'<html><body style="text-align:center;margin-top:30vh;background-color:black;color:white;"> \
+        <h1>Welcome to eJobs!</h1><a style="color:white; "href="/index/"><h1>Login</h1></a></body></html>'
+
+
+@app.route("/index/")
 def index():
     if current_user.is_authenticated:
-        return '<html style="background-color:black"><h1 style="color:white">Welcome to eJobs!</h1>' + html_strings.index_list() + '</html>'
-
+        return f'<html style="background-color:black;color:white">{html_strings.index_list()}</html>'
     else:
         google_data = None
         user_info_endpoint = '/oauth2/v2/userinfo'
         if google.authorized:
             google_data = google.get(user_info_endpoint).json()
-            print(google_data)
             if not db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar():
                 new_user = User(id=google_data['id'], name=google_data['name'], email=google_data['email'],
                                 profile_pic=google_data['picture'])
-                db.session.add_all([new_user])
+                db.session.add(new_user)
                 db.session.commit()
 
             user = db.session.execute(db.select(User).filter(User.id == google_data['id'])).scalar()
@@ -101,8 +114,8 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return '<html><body style="text-align:center;margin-top:50vh;background-color:black;color:white;">' \
-           + '<h1>Until Next Time!</h1></body></html>'
+    return f'<html><body style="text-align:center;margin-top:50vh;background-color:black;color:white;"> \
+           <h1>Until Next Time!</h1></body></html>'
 
 
 @app.route('/create_all/')
@@ -125,7 +138,8 @@ def create_db_all():
     db.session.add_all(jb_seed)
     db.session.commit()
     print("All Done")
-    return '<html style="background-color:black"><h1 style="color:white">All Done!</h1>' + html_strings.index_list() + '</html>'
+    return f'<html style="background-color:black;color:white"><h1 style="color:white">All Done!</h1> \
+    {html_strings.index_list()}</html>'
 
 
 @app.route('/equipment/all/')
@@ -174,13 +188,13 @@ def cust_by_id(id):
     return char_check(id, customer.get_cust_by_id(id))
 
 
-@app.route('/customer/add_form/')
+@app.route('/customers/add_form/')
 @login_required
 def new_customer():
     return html_strings.cust_template()
 
 
-@app.route('/customer/new/', methods=['POST'])
+@app.route('/customers/new/', methods=['POST'])
 @login_required
 def customer_add():
     business_name = request.form['business_name']
@@ -277,6 +291,12 @@ def staff_all():
     return staff.all_staff()
 
 
+@app.route('/staff/all/test')
+# @login_required
+def test_staff_all():
+    return staff.all_staff_test()
+
+
 @app.route('/staff/id/<id>/')
 @login_required
 def staff_by_id(id):
@@ -303,5 +323,10 @@ def staff_new():
         return 'Illegal characters entered', 400
 
 
+@app.route('/query')
+def quer():
+    return customer.query1()
+
+
 if __name__ == "__main__":
-    app.run(port=8000, debug=True)
+    app.run(ssl_context='adhoc', debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 443)))
